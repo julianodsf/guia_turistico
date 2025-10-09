@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/data/app_data.dart';
-// import '../../core/widgets/custom_drawer.dart';
 import '../../core/widgets/custom_appbar.dart';
 import '../subcategory_list/subcategory_list_screen.dart';
 import 'widgets/category_button.dart';
@@ -138,4 +137,5 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       },
     );
   }
+
 }
