@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/categoria_model.dart';
 import '../models/item_model.dart';
 
-// NOVO: Gerenciador de estado simples para os favoritos
 class FavoriteManager {
-  // Conjunto estático para armazenar os IDs dos itens favoritos
   static final Set<String> _favoriteItemIds = {};
 
   static bool isFavorite(String itemId) {
@@ -19,14 +17,11 @@ class FavoriteManager {
     }
   }
 
-  // Retorna a lista completa dos objetos ItemModel que estão favoritados
   static List<ItemModel> getFavoriteItems() {
     List<ItemModel> allItems = [];
-    // Percorre todas as categorias para coletar todos os itens
     for (var cat in AppData.categorias) {
       allItems.addAll(cat.subcategorias);
     }
-    // Filtra apenas os itens cujos IDs estão no Set de favoritos
     return allItems
         .where((item) => _favoriteItemIds.contains(item.id))
         .toList();
@@ -120,4 +115,5 @@ class AppData {
       ],
     ),
   ];
+
 }
