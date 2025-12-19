@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/data/app_data.dart';
 import '../../core/widgets/custom_appbar.dart';
 import '../subcategory_list/subcategory_list_screen.dart';
 import 'widgets/category_button.dart';
 import '../subcategory_list/widgets/subcategory_card.dart';
-import '../../core/widgets/main_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,8 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // BottomNavigationBar
   late final List<Widget> _widgetOptions = <Widget>[
-    const CategorySelectionBody(), // Conteúdo principal
-    const FavoritesScreen(),       // Lista de Favoritos
+    const CategorySelectionBody(), 
+    const FavoritesScreen(), // usa Provider
   ];
 
   void _onItemTapped(int index) {
@@ -31,11 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Explore o Piauí'), // AppBar
-      drawer: const MainDrawer(), // SideDrawer
-      body: _widgetOptions.elementAt(_selectedIndex), // body
+      appBar: const CustomAppBar(title: 'Explore o Piauí'),
+      body: _widgetOptions.elementAt(_selectedIndex),
       
-      // BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -67,11 +65,9 @@ class CategorySelectionBody extends StatelessWidget {
         children: AppData.categorias.map((categoria) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 15.0),
-            // Reutiliza o widget CategoryButton
             child: CategoryButton(
               categoria: categoria,
               onTap: () {
-                // Navegação para a lista de subcategorias
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -89,53 +85,45 @@ class CategorySelectionBody extends StatelessWidget {
   }
 }
 
-class FavoritesScreen extends StatefulWidget {
+class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
   @override
-  State<FavoritesScreen> createState() => _FavoritesScreenState();
-}
-
-class _FavoritesScreenState extends State<FavoritesScreen> {
-  @override
   Widget build(BuildContext context) {
-    // Recupera a lista de favoritos
-    final favoriteItems = FavoriteManager.getFavoriteItems();
+    return Consumer<FavoritesProvider>(
+      builder: (context, favoritesProvider, child) {
+        
+        final favoriteItems = favoritesProvider.getFavoriteItems();
 
-    if (favoriteItems.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-            SizedBox(height: 10),
-            Text(
-              'Você ainda não adicionou nenhum item aos favoritos.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+        if (favoriteItems.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.favorite_border, size: 80, color: Colors.grey),
+                SizedBox(height: 10),
+                Text(
+                  'Você ainda não adicionou nenhum item aos favoritos.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              ],
             ),
-            Text(
-              'Use o ícone de coração na tela de detalhes para favoritar.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
-        ),
-      );
-    }
+          );
+        }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: favoriteItems.length,
-      itemBuilder: (context, index) {
-        final item = favoriteItems[index];
-        // Reutiliza o SubcategoryCard para listar os favoritos
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
-          child: SubcategoryCard(item: item),
+        return ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: favoriteItems.length,
+          itemBuilder: (context, index) {
+            final item = favoriteItems[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: SubcategoryCard(item: item),
+            );
+          },
         );
       },
     );
   }
-
 }

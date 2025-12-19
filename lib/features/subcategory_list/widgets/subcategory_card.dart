@@ -9,7 +9,6 @@ class SubcategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // GestureDetector simula o 'botão' da subcategoria
     return GestureDetector(
       onTap: () {
         // Navegação para a tela de detalhes

@@ -1,23 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/categoria_model.dart';
 import '../models/item_model.dart';
 
-class FavoriteManager {
-  static final Set<String> _favoriteItemIds = {};
+class FavoritesProvider extends ChangeNotifier {
+  final Set<String> _favoriteItemIds = {};
+  static const String _storageKey = 'favorite_items';
 
-  static bool isFavorite(String itemId) {
-    return _favoriteItemIds.contains(itemId);
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? storedList = prefs.getStringList(_storageKey);
+    if (storedList != null) {
+      _favoriteItemIds.clear();
+      _favoriteItemIds.addAll(storedList);
+    }
+    notifyListeners();
   }
 
-  static void toggleFavorite(String itemId) {
-    if (isFavorite(itemId)) {
+  bool isFavorite(String itemId) => _favoriteItemIds.contains(itemId);
+
+  Future<void> toggleFavorite(String itemId) async {
+    if (_favoriteItemIds.contains(itemId)) {
       _favoriteItemIds.remove(itemId);
     } else {
       _favoriteItemIds.add(itemId);
     }
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_storageKey, _favoriteItemIds.toList());
   }
 
-  static List<ItemModel> getFavoriteItems() {
+  List<ItemModel> getFavoriteItems() {
     List<ItemModel> allItems = [];
     for (var cat in AppData.categorias) {
       allItems.addAll(cat.subcategorias);
@@ -25,6 +38,70 @@ class FavoriteManager {
     return allItems
         .where((item) => _favoriteItemIds.contains(item.id))
         .toList();
+  }
+}
+
+class ThemeProvider extends ChangeNotifier {
+  bool _isDarkMode = false;
+  static const String _themeKey = 'is_dark_mode';
+
+  bool get isDarkMode => _isDarkMode;
+
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isDarkMode = prefs.getBool(_themeKey) ?? false; // Padrão é claro
+    notifyListeners();
+  }
+
+  Future<void> toggleTheme() async {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners(); // Atualiza a UI
+
+    // arquivo local
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_themeKey, _isDarkMode);
+  }
+}
+
+class AuthProvider extends ChangeNotifier {
+  bool _isAuthenticated = false;
+  static const String _authKey = 'is_logged_in';
+
+  bool get isAuthenticated => _isAuthenticated;
+
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isAuthenticated = prefs.getBool(_authKey) ?? false;
+    notifyListeners();
+  }
+
+  // login simulado
+  Future<void> login(String email, String password) async {
+    if (email.isEmpty || password.isEmpty) {
+      throw Exception('Preencha todos os campos.');
+    }
+    
+    // Simula delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (password == '123456') { 
+      _isAuthenticated = true;
+      notifyListeners();
+      
+      // Persistência da sessão
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_authKey, true);
+    } else {
+      throw Exception('Senha incorreta. Tente "123456".');
+    }
+  }
+
+  Future<void> logout() async {
+    _isAuthenticated = false;
+    notifyListeners();
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_authKey); // remove a chave de sessão
   }
 }
 
@@ -39,7 +116,7 @@ class AppData {
           id: 'corso_de_teresina',
           nome: 'Corso de Teresina',
           descricao: 'Conhecido por ser um dos maiores desfiles de carros decorados do mundo, entrando para o Guinness Book. Acontece no sábado que antecede o carnaval.',
-          imagemPath: 'assets/corso_de_teresina.jpg', 
+          imagemPath: 'assets/corso_de_teresina.jpg',
           corDestaque: Colors.deepOrange,
         ),
         ItemModel(
@@ -115,5 +192,4 @@ class AppData {
       ],
     ),
   ];
-
 }
